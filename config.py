@@ -13,7 +13,7 @@ LINKEDIN_CLIENT_SECRET = os.getenv("PRIMARY_CLIENT_SECRET") or os.getenv("LINKED
 TIMEZONE = os.getenv("TIMEZONE", "US/Eastern")
 _topics_raw = os.getenv("DEFAULT_TOPICS") or "AI,entrepreneurship,productivity,leadership,tech trends"
 DEFAULT_TOPICS = [t.strip() for t in _topics_raw.split(",") if t.strip()]
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), "ghostwriter.db")
 
