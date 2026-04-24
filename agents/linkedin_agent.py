@@ -18,14 +18,17 @@ def _headers() -> dict:
 
 
 def get_person_urn() -> str:
-    """Return person URN from config, or fetch it from the API."""
+    """Return person URN from config, or fetch via /userinfo (OpenID Connect)."""
     if LINKEDIN_PERSON_URN:
         return LINKEDIN_PERSON_URN
 
-    resp = requests.get(f"{LINKEDIN_API_BASE}/me", headers=_headers(), timeout=10)
+    # /userinfo works with openid+profile scopes (standard with LinkedIn's token generator)
+    resp = requests.get(f"{LINKEDIN_API_BASE}/userinfo", headers=_headers(), timeout=10)
     resp.raise_for_status()
-    person_id = resp.json().get("id", "")
-    return f"urn:li:person:{person_id}"
+    sub = resp.json().get("sub", "")
+    if not sub:
+        raise RuntimeError("Could not determine LinkedIn person URN — set LINKEDIN_PERSON_URN secret")
+    return f"urn:li:person:{sub}"
 
 
 def publish_post(content: str) -> dict:
@@ -88,9 +91,11 @@ def get_post_analytics(linkedin_post_id: str) -> dict:
 
 
 def validate_token() -> bool:
-    """Check if the current LinkedIn access token is valid."""
+    """Check if token exists and is recognised by LinkedIn (via /userinfo)."""
+    if not LINKEDIN_ACCESS_TOKEN:
+        return False
     try:
-        resp = requests.get(f"{LINKEDIN_API_BASE}/me", headers=_headers(), timeout=5)
+        resp = requests.get(f"{LINKEDIN_API_BASE}/userinfo", headers=_headers(), timeout=5)
         return resp.ok
     except Exception:
         return False
