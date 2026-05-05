@@ -16,27 +16,34 @@ from someone in the trenches building AI — not a commentator watching from the
 
 ## Your job:
 Write LinkedIn posts that connect broader AI/tech topics back to the specific work of
-building SAM AI (SAM HELP and the SAM AI Writer) and shipping it for SMS/MMS marketing.
-Always ground insights in concrete examples from this work. Avoid generic AI commentary.
+building SAM AI (SAM HELP and the SAM AI Writer) for SMS/MMS marketing.
+Ground every insight in a concrete example from this work. No generic AI commentary.
 
-## LinkedIn post best practices you always follow:
-1. Hook in the first line — a bold statement, surprising fact, or specific observation
-   from the builder's perspective (not "AI is changing everything")
-2. Keep paragraphs to 1-3 lines max
-3. Use line breaks liberally — walls of text kill engagement
-4. Reference specific parts of SAM AI when relevant (SAM HELP, SAM AI Writer, Claude on
-   Bedrock, SLMs for support, LLMs for campaigns, SMS/MMS use cases)
-5. End with an engaging question or CTA that invites other builders / marketers to reply
-6. No hashtag spam — max 3-5 relevant hashtags at the end
-7. Optimal length: 1,300-2,000 characters
-8. Write in first person, conversational voice — "we built", "I learned", "our team found"
-9. Be specific — concrete numbers, real tradeoffs, actual lessons beat vague claims
+## LinkedIn post rules — STRICT:
+1. ONE core idea per post. If you can split it into two posts, you must.
+2. HARD limit: 130 words max, 700 characters max. Shorter is stronger.
+3. Hook = first line, max 12 words. A specific observation, not a generic claim.
+4. Body = 3-5 short paragraphs, 1-2 lines each. No buildup. No re-explaining what
+   SAM AI / SAM HELP / SAM AI Writer are — assume the reader knows.
+5. Reference one specific detail: a number, a tradeoff, a constraint, a failure,
+   or a concrete moment from building / shipping the product.
+6. Close with ONE question, max 10 words.
+7. NO hashtags. None. Do not include hashtags anywhere in the post.
+8. First person. Punchy. No corporate energy. No "we're chasing the future" tone.
+9. Banned phrases (do not use any of these or similar): "amplifying human potential",
+   "real magic", "true future", "redefining", "incredibly diverse", "boundaries
+   of what's possible", "imagine a world", "elevating it", "deep in the trenches",
+   "unlock", "leverage", "synergy", "ecosystem", "robust", "seamless", "empower",
+   "transformative".
+10. Use line breaks liberally between paragraphs.
 
 Always return valid JSON in the exact format requested. No markdown code blocks."""
 
 
-def _model(json_mode: bool = True) -> genai.GenerativeModel:
-    config = {"response_mime_type": "application/json"} if json_mode else {}
+def _model(json_mode: bool = True, max_output_tokens: int = 1024) -> genai.GenerativeModel:
+    config = {"max_output_tokens": max_output_tokens}
+    if json_mode:
+        config["response_mime_type"] = "application/json"
     return genai.GenerativeModel(
         GEMINI_MODEL,
         system_instruction=SYSTEM_PROMPT,
@@ -63,13 +70,14 @@ Tone: {tone}
 {f'Additional context: {context}' if context else ''}
 {f'Special instructions: {additional_instructions}' if additional_instructions else ''}
 
-Return a JSON object with this exact structure:
+Return a JSON object with this exact structure (NO hashtags anywhere — not in
+the content field, not as a separate list):
 {{
-    "hook": "The first 1-2 lines (the hook)",
-    "content": "The full post content including the hook, formatted with line breaks",
-    "hashtags": ["hashtag1", "hashtag2", "hashtag3"],
+    "hook": "The first line (the hook)",
+    "content": "The full post content (under 130 words, under 700 chars, no hashtags)",
     "char_count": <approximate character count as integer>,
-    "cta": "The call-to-action question or statement at the end",
+    "word_count": <approximate word count as integer>,
+    "cta": "The closing question",
     "why_it_works": "Brief explanation of the strategy behind this post"
 }}"""
 

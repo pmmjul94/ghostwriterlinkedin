@@ -8,11 +8,20 @@ Usage:
     python bot.py --topic "AI in healthcare"   # force a specific topic
 """
 import logging
+import re
 import sys
 from datetime import datetime, timezone
 
 import config
 from agents import content_agent, linkedin_agent
+
+
+def strip_hashtags(text: str) -> str:
+    """Remove any hashtags (and their leading whitespace) from the post."""
+    cleaned = re.sub(r"\s*#\w+", "", text)
+    # Collapse runs of 3+ blank lines that the removal may leave behind
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,12 +72,10 @@ def main():
         logger.error("Content generation failed: %s", e)
         sys.exit(1)
 
-    content = result.get("content", "")
-    hashtags = result.get("hashtags", [])
-    if hashtags:
-        content += "\n\n" + " ".join(f"#{h}" for h in hashtags)
+    content = strip_hashtags(result.get("content", ""))
 
-    logger.info("Generated post (%d chars):", len(content))
+    word_count = len(content.split())
+    logger.info("Generated post (%d chars, %d words):", len(content), word_count)
     logger.info("---\n%s\n---", content)
     logger.info("Hook: %s", result.get("hook", ""))
     logger.info("Why it works: %s", result.get("why_it_works", ""))
